@@ -5,6 +5,9 @@
 #include "infoinput.h"
 #include "contact.h"
 #include <QMessageBox>
+#include <QApplication>
+#include <QFile>
+#include <QFileDialog>
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -14,18 +17,16 @@ MainWindow::MainWindow(QWidget *parent)
 
     setWindowTitle("Address Book");
 
-    //set App Icon
+    //set app icon from resources
     QPixmap icon("://resources/icon.png");
     QIcon appIcon(icon);
     setWindowIcon(appIcon);
 
-    //model
+    //model creation
     addressBook = new QStandardItemModel(this);
-    //QStandardItem* root = addressBook->invisibleRootItem();
     parentIndex = QModelIndex();
 
     ui->listView->setModel(addressBook);
-
 }
 
 MainWindow::~MainWindow()
@@ -65,6 +66,7 @@ void MainWindow::on_addButton_clicked()
 void MainWindow::on_deleteButton_clicked()
 {
     if (!ui->listView->currentIndex().isValid()) {
+        QApplication::beep();
         QMessageBox::warning(this, "Error", "Please select a contact to delete.", QMessageBox::Ok, QMessageBox::Ok);
     }
     else {
@@ -83,13 +85,15 @@ void MainWindow::on_deleteButton_clicked()
 
 void MainWindow::on_listView_doubleClicked(const QModelIndex &index)
 {
+
+
     QModelIndex parent = index;
     QString name = addressBook->data(parent, Qt::DisplayRole).toString();
-    QString streetAddress = addressBook->data(parent.child(0,0), Qt::DisplayRole).toString();
-    QString city = addressBook->data(parent.child(1,0), Qt::DisplayRole).toString();
-    QString state = addressBook->data(parent.child(2,0), Qt::DisplayRole).toString();
-    QString zipCode = addressBook->data(parent.child(3,0), Qt::DisplayRole).toString();
-    QString note = addressBook->data(parent.child(4,0), Qt::DisplayRole).toString();
+    QString streetAddress = addressBook->data(addressBook->index(0,0,parent), Qt::DisplayRole).toString();
+    QString city = addressBook->data(addressBook->index(1,0, parent), Qt::DisplayRole).toString();
+    QString state = addressBook->data(addressBook->index(2,0, parent), Qt::DisplayRole).toString();
+    QString zipCode = addressBook->data(addressBook->index(3,0, parent), Qt::DisplayRole).toString();
+    QString note = addressBook->data(addressBook->index(4,0, parent), Qt::DisplayRole).toString();
 
     Contact* contact = new Contact(this);
 
@@ -103,20 +107,25 @@ void MainWindow::on_listView_doubleClicked(const QModelIndex &index)
 void MainWindow::on_editButton_clicked()
 {
     if (!ui->listView->currentIndex().isValid()) {
+        QApplication::beep();
         QMessageBox::warning(this, "Error", "Please select a contact before editing.", QMessageBox::Ok, QMessageBox::Ok);
     }
     else {
         InfoInput* w = new InfoInput(this);
 
+        //set parent as the selected index
         QModelIndex parent = ui->listView->currentIndex();
-        QString firstName = addressBook->data(parent.child(5,0), Qt::DisplayRole).toString();
-        QString lastName = addressBook->data(parent.child(6,0), Qt::DisplayRole).toString();
-        QString streetAddress = addressBook->data(parent.child(0,0), Qt::DisplayRole).toString();
-        QString city = addressBook->data(parent.child(1,0), Qt::DisplayRole).toString();
-        QString state = addressBook->data(parent.child(2,0), Qt::DisplayRole).toString();
-        QString zipCode = addressBook->data(parent.child(3,0), Qt::DisplayRole).toString();
-        QString note = addressBook->data(parent.child(4,0), Qt::DisplayRole).toString();
 
+        //capture the data from model into local variables
+        QString firstName = addressBook->data(addressBook->index(5,0, parent), Qt::DisplayRole).toString();
+        QString lastName = addressBook->data(addressBook->index(6,0, parent), Qt::DisplayRole).toString();
+        QString streetAddress = addressBook->data(addressBook->index(0,0,parent), Qt::DisplayRole).toString();
+        QString city = addressBook->data(addressBook->index(1,0, parent), Qt::DisplayRole).toString();
+        QString state = addressBook->data(addressBook->index(2,0, parent), Qt::DisplayRole).toString();
+        QString zipCode = addressBook->data(addressBook->index(3,0, parent), Qt::DisplayRole).toString();
+        QString note = addressBook->data(addressBook->index(4,0, parent), Qt::DisplayRole).toString();
+
+        //use InfoInput::setInfo() with local variables
         w->setInfo(firstName, lastName, streetAddress, city, state, zipCode, note);
 
         int ret = w->exec();
@@ -132,15 +141,51 @@ void MainWindow::on_editButton_clicked()
             QString newZipCode = w->getZipCode();
             QString newNote = w->getNote();
 
+            //rewriting information
             addressBook->setData(parent, newName, Qt::DisplayRole);
-            addressBook->setData(parent.child(0,0), newAddress, Qt::DisplayRole);
-            addressBook->setData(parent.child(1,0), newCity, Qt::DisplayRole);
-            addressBook->setData(parent.child(2,0), newState, Qt::DisplayRole);
-            addressBook->setData(parent.child(3,0), newZipCode, Qt::DisplayRole);
-            addressBook->setData(parent.child(4,0), newNote, Qt::DisplayRole);
-
-
+            addressBook->setData(addressBook->index(0,0, parent), newAddress, Qt::DisplayRole);
+            addressBook->setData(addressBook->index(1,0, parent), newCity, Qt::DisplayRole);
+            addressBook->setData(addressBook->index(2,0, parent), newState, Qt::DisplayRole);
+            addressBook->setData(addressBook->index(3,0, parent), newZipCode, Qt::DisplayRole);
+            addressBook->setData(addressBook->index(4,0, parent), newNote, Qt::DisplayRole);
         }
     }
+}
+
+void MainWindow::on_actionNew_Address_triggered()
+{
+    on_addButton_clicked();
+}
+
+void MainWindow::on_actionQuit_AddressBook_triggered()
+{
+    QApplication::quit();
+}
+
+void MainWindow::on_viewButton_clicked()
+{
+    if (!ui->listView->currentIndex().isValid()) {
+        QApplication::beep();
+        QMessageBox::warning(this, "Error", "Please select or add a contact before viewing.", QMessageBox::Ok, QMessageBox::Ok);
+    }
+    else {
+        QModelIndex index = ui->listView->currentIndex();
+        on_listView_doubleClicked(index);
+    }
+}
+
+void MainWindow::on_actionView_Contact_triggered()
+{
+    on_viewButton_clicked();
+}
+
+void MainWindow::on_actionDelete_Contact_triggered()
+{
+    on_deleteButton_clicked();
+}
+
+void MainWindow::on_actionEdit_Contact_triggered()
+{
+    on_editButton_clicked();
 }
 

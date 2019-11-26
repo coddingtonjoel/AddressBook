@@ -7,7 +7,6 @@ Contact::Contact(QWidget *parent) :
     ui(new Ui::Contact)
 {
     ui->setupUi(this);
-
 }
 
 Contact::~Contact()
@@ -21,6 +20,7 @@ void Contact::setInfo(QString name, QString streetAddress, QString city, QString
     ui->streetAddressLabel->setText(streetAddress);
     ui->cityStateZipLabel->setText(city + ", " + state + " " + zipCode);
     ui->noteTextEdit->setText(note);
+    setWindowTitle(name);
 }
 
 void Contact::setInfo(QString name, QString streetAddress, QString city, QString state, QString zipCode)

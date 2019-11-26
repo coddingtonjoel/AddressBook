@@ -19,12 +19,15 @@ public:
 
 private slots:
     void on_addButton_clicked();
-
     void on_deleteButton_clicked();
-
     void on_listView_doubleClicked(const QModelIndex &index);
-
     void on_editButton_clicked();
+    void on_actionNew_Address_triggered();
+    void on_actionQuit_AddressBook_triggered();
+    void on_viewButton_clicked();
+    void on_actionView_Contact_triggered();
+    void on_actionDelete_Contact_triggered();
+    void on_actionEdit_Contact_triggered();
 
 private:
     Ui::MainWindow *ui;
